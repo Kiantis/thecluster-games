@@ -1,5 +1,5 @@
 debug(string message) {
-  llOwnerSay(message);
+  //llOwnerSay(message);
 }
 
 // ============================================================================

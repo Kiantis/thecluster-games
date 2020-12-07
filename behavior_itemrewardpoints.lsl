@@ -1,7 +1,11 @@
-#include "fullinclude.lsl"
+/*
+variables needed:
 
-integer DAY = 86400;
-integer last_given_timestamp;
+integer item_to_take = id of the item to take
+integer reward_points = how many points to reward for the item taken
+*/
+
+#include "fullinclude.lsl"
 
 default {
   state_entry() {
@@ -21,15 +25,11 @@ default {
     list added_acks = inventory_receive_ackd(channel, name, id, message);
     list points_added_acks = inventory_points_receive_ackd(channel, name, id, message);
     list removed_acks = inventory_remove_ackd(channel, name, id, message);
+
+    if (llGetListLength(removed_acks) > 0 && item_id_is(removed_acks, ITEMID_BATTERY))
+      channel_send([GIVE_POINTS, command_subject(removed_acks), 100]);
   }
   collision_start(integer num_detected) {
-    integer now = llGetUnixTime();
-    if (now - last_given_timestamp < DAY) {
-      llSay(0, "Remaining seconds for regeneration: "+(string)(DAY - (now - last_given_timestamp)));
-      return;
-    }
-    key k = llDetectedKey(0);
-    channel_send([GIVE_INVENTORY_ITEM, k, ITEMID_BATTERY]);
-    last_given_timestamp = llGetUnixTime();
+    channel_send([REMOVE_INVENTORY_ITEM, llDetectedKey(0), ITEMID_BATTERY]);
   }
 }

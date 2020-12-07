@@ -1,4 +1,13 @@
+/*
+variables needed:
+
+integer regen_delay = seconds to regenerate the item to give
+integer item_to_give = id of the item to give
+*/
+
 #include "fullinclude.lsl"
+
+integer last_given_timestamp;
 
 default {
   state_entry() {
@@ -18,5 +27,16 @@ default {
     list added_acks = inventory_receive_ackd(channel, name, id, message);
     list points_added_acks = inventory_points_receive_ackd(channel, name, id, message);
     list removed_acks = inventory_remove_ackd(channel, name, id, message);
+    
+    if (llGetListLength(added_acks) > 0 && item_id_is(added_acks, item_to_give))
+      last_given_timestamp = llGetUnixTime();
+  }
+  collision_start(integer num_detected) {
+    integer now = llGetUnixTime();
+    if (now - last_given_timestamp < regen_delay) {
+      llSay(0, "Remaining seconds for regeneration: "+(string)(last_given_timestamp - (now - last_given_timestamp)));
+      return;
+    }
+    channel_send([GIVE_INVENTORY_ITEM, llDetectedKey(0), item_to_give]);
   }
 }
