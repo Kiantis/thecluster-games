@@ -15,6 +15,12 @@ integer GIVE_POINTS = 30;
 integer GIVE_POINTS_ACK = 31;
 
 // ============================================================================
+list itemDescriptions = [
+  "Battery",
+  "Scraps",
+  "Processor unit"
+];
+// ============================================================================
 
 string secret_secret;
 string secret_secretNotecardId;
@@ -114,15 +120,13 @@ init_identify_script(integer id) {
 
 // ============================================================================
 
-// Ids must match itemDescriptions indexes
-integer ITEMID_BATTERY = 0;
-list itemDescriptions = ["Battery"];
-
 list inventory;
 integer inventory_points;
 list inventory_names;
 
 list inventory_receive_check(integer channel, string name, key id, string smessage) {
+  if (!init_is_avatar())
+    return [];
   if (channel != channel_listen_channel)
     return [];
   
@@ -149,6 +153,8 @@ list inventory_receive_check(integer channel, string name, key id, string smessa
 }
 
 list inventory_points_receive_check(integer channel, string name, key id, string smessage) {
+  if (!init_is_avatar())
+    return [];
   if (channel != channel_listen_channel)
     return [];
   
@@ -174,6 +180,8 @@ list inventory_points_receive_check(integer channel, string name, key id, string
 }
 
 list inventory_remove_check(integer channel, string name, key id, string smessage) {
+  if (!init_is_avatar())
+    return [];
   if (channel != channel_listen_channel)
     return [];
   
@@ -204,6 +212,8 @@ list inventory_remove_check(integer channel, string name, key id, string smessag
 }
 
 list inventory_points_receive_ackd(integer channel, string name, key id, string smessage) {
+  if (init_is_avatar())
+    return [];
   if (channel != channel_listen_channel)
     return [];
   
@@ -222,6 +232,8 @@ list inventory_points_receive_ackd(integer channel, string name, key id, string 
 }
 
 list inventory_receive_ackd(integer channel, string name, key id, string smessage) {
+  if (init_is_avatar())
+    return [];
   if (channel != channel_listen_channel)
     return [];
   
@@ -240,6 +252,8 @@ list inventory_receive_ackd(integer channel, string name, key id, string smessag
 }
 
 list inventory_remove_ackd(integer channel, string name, key id, string smessage) {
+  if (init_is_avatar())
+    return [];
   if (channel != channel_listen_channel)
     return [];
   

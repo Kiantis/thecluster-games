@@ -34,7 +34,7 @@ default {
   collision_start(integer num_detected) {
     integer now = llGetUnixTime();
     if (now - last_given_timestamp < regen_delay) {
-      llSay(0, "Remaining seconds for regeneration: "+(string)(last_given_timestamp - (now - last_given_timestamp)));
+      llSay(0, "Remaining seconds for regeneration: "+(string)(regen_delay - (now - last_given_timestamp)));
       return;
     }
     channel_send([GIVE_INVENTORY_ITEM, llDetectedKey(0), item_to_give]);
