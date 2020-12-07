@@ -5,10 +5,14 @@ debug(string message) {
 // ============================================================================
 
 integer COMMANDS_CHANGE_CHANNEL = 1;
+
 integer GIVE_INVENTORY_ITEM = 10;
 integer GIVE_INVENTORY_ITEM_ACK = 11;
 integer REMOVE_INVENTORY_ITEM = 20;
 integer REMOVE_INVENTORY_ITEM_ACK = 21;
+
+integer GIVE_POINTS = 30;
+integer GIVE_POINTS_ACK = 31;
 
 // ============================================================================
 
@@ -44,6 +48,14 @@ channel_send(list command) {
   if (secret_secret == "")
     return;
   llSay(channel_listen_channel, llDumpList2String([secret_secret] + command, ","));
+}
+
+integer item_id_is(list command, integer item_id) {
+  return llGetListLength(command) > 0 && llList2Integer(command, 1) == item_id;
+}
+
+key command_subject(list command) {
+  return llList2Key(command, 0);
 }
 
 channel_listen() {
@@ -107,7 +119,8 @@ integer ITEMID_BATTERY = 0;
 list itemDescriptions = ["Battery"];
 
 list inventory;
-list inventoryNames;
+integer inventory_points;
+list inventory_names;
 
 list inventory_receive_check(integer channel, string name, key id, string smessage) {
   if (channel != channel_listen_channel)
@@ -128,11 +141,36 @@ list inventory_receive_check(integer channel, string name, key id, string smessa
 
   integer itemId = llList2Integer(message, 3);
   inventory = inventory + [itemId];
-  inventoryNames = inventoryNames + llList2String(itemDescriptions, itemId);
+  inventory_names = inventory_names + llList2String(itemDescriptions, itemId);
   channel_send([GIVE_INVENTORY_ITEM_ACK, llGetOwner(), itemId]);
   inventory_changed();
 
   return [destinationKey, itemId];
+}
+
+list inventory_points_receive_check(integer channel, string name, key id, string smessage) {
+  if (channel != channel_listen_channel)
+    return [];
+  
+  list message = llParseString2List(smessage, [","], []);
+  string secret = llList2String(message, 0);
+  if (!secret_valid(secret))
+    return [];
+
+  integer command = llList2Integer(message, 1);
+  if (command != GIVE_POINTS)
+    return [];
+  
+  key destinationKey = llList2Key(message, 2);
+  if (llGetOwner() != destinationKey)
+    return [];
+
+  integer points = llList2Integer(message, 3);
+  inventory_points = inventory_points + points;
+  channel_send([GIVE_POINTS_ACK, llGetOwner(), points]);
+  inventory_changed();
+
+  return [destinationKey, inventory_points];
 }
 
 list inventory_remove_check(integer channel, string name, key id, string smessage) {
@@ -158,11 +196,29 @@ list inventory_remove_check(integer channel, string name, key id, string smessag
     return [];
 
   inventory = llDeleteSubList(inventory, idx, idx);
-  inventoryNames = llDeleteSubList(inventoryNames, idx, idx);
+  inventory_names = llDeleteSubList(inventory_names, idx, idx);
   channel_send([REMOVE_INVENTORY_ITEM_ACK, llGetOwner(), itemId]);
   inventory_changed();
 
   return [destinationKey, itemId];
+}
+
+list inventory_points_receive_ackd(integer channel, string name, key id, string smessage) {
+  if (channel != channel_listen_channel)
+    return [];
+  
+  list message = llParseString2List(smessage, [","], []);
+  string secret = llList2String(message, 0);
+  if (!secret_valid(secret))
+    return [];
+
+  integer command = llList2Integer(message, 1);
+  if (command != GIVE_POINTS_ACK)
+    return [];
+  
+  key destinationKey = llList2Key(message, 2);
+  integer points = llList2Integer(message, 3);
+  return [destinationKey, points];
 }
 
 list inventory_receive_ackd(integer channel, string name, key id, string smessage) {
@@ -202,6 +258,15 @@ list inventory_remove_ackd(integer channel, string name, key id, string smessage
 }
 
 inventory_changed() {
-  llOwnerSay("Inventory changed");
-  llSetText("Inventory: " + llDumpList2String(inventoryNames, ", "), <1.0, 1.0, 1.0>, 1.0);
+  string message;
+  debug("Inventory changed");
+
+  if (init_is_avatar())
+    message = message + "Points: "+(string)(inventory_points)+"\n";
+
+  integer list_len = llGetListLength(inventory_names);
+  if (list_len != 0)
+    message = message + "Inventory: " + llDumpList2String(inventory_names, ", ");
+
+  llSetText(message, <1.0, 1.0, 1.0>, 1.0);
 }

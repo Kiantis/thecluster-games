@@ -18,5 +18,11 @@ default {
     list added_acks = inventory_receive_ackd(channel, name, id, message);
     list points_added_acks = inventory_points_receive_ackd(channel, name, id, message);
     list removed_acks = inventory_remove_ackd(channel, name, id, message);
+
+    if (llGetListLength(removed_acks) > 0 && item_id_is(removed_acks, ITEMID_BATTERY))
+      channel_send([GIVE_POINTS, command_subject(removed_acks), 100]);
+  }
+  collision_start(integer num_detected) {
+    channel_send([REMOVE_INVENTORY_ITEM, llDetectedKey(0), ITEMID_BATTERY]);
   }
 }

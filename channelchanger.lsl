@@ -6,6 +6,7 @@ default {
     secret_read();
     channel_listen();
     inventory_changed();
+    channel_send([COMMANDS_CHANGE_CHANNEL, -674321]);
   }
   dataserver(key queryid, string data) {
     secret_dataserver_callback(queryid, data);
@@ -13,10 +14,8 @@ default {
   listen(integer channel, string name, key id, string message) {
     channel_change(channel, name, id, message);
     list added = inventory_receive_check(channel, name, id, message);
-    list points_added = inventory_points_receive_check(channel, name, id, message);
     list removed = inventory_remove_check(channel, name, id, message);
     list added_acks = inventory_receive_ackd(channel, name, id, message);
-    list points_added_acks = inventory_points_receive_ackd(channel, name, id, message);
     list removed_acks = inventory_remove_ackd(channel, name, id, message);
   }
 }
