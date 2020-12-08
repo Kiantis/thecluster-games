@@ -24,28 +24,28 @@ default {
     list points_added_acks = inventory_points_receive_ackd(channel, name, id, message);
     list removed_acks = inventory_remove_ackd(channel, name, id, message);
   }
-  on_rez(integer start_param) {
-    reset_game();
+  attach(key id) {
+    if (id == NULL_KEY)
+      reset_game("detached");
     pos = llGetPos();
   }
-  attach(key id) {
-    reset_game();
+  on_rez(integer start_param) {
     pos = llGetPos();
   }
   changed(integer change) {
     if (change & CHANGED_TELEPORT)
-      reset_game();
+      reset_game("teleport");
   }
   timer() {
     integer flystatus = llGetAgentInfo(llGetOwner()) & AGENT_FLYING;
     if (!flying && flystatus)
-      reset_game();
+      reset_game("fly");
     flying = flystatus;
 
     vector newpos = llGetPos();
     float distance = llVecDist(pos, newpos);
     if (distance > 15)
-      reset_game();
+      reset_game("sitteleport");
     pos = newpos;
   }
 }

@@ -268,11 +268,11 @@ list inventory_remove_ackd(integer channel, string name, key id, string smessage
   return [destinationKey, itemCode];
 }
 
-reset_game() {
+reset_game(string reason) {
   inventory_points = 0;
   inventory_names = [];
   inventory_changed();
-  llOwnerSay("Game was reset");
+  llOwnerSay("Game was reset: "+reason);
 }
 
 inventory_changed() {
