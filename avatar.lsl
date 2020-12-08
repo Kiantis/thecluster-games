@@ -1,6 +1,7 @@
 #include "fullinclude.lsl"
 
 integer flying = FALSE;
+vector pos;
 
 default {
   state_entry() {
@@ -9,6 +10,7 @@ default {
     channel_listen();
     inventory_changed();
     llSetTimerEvent(1);
+    pos = llGetPos();
   }
   dataserver(key queryid, string data) {
     secret_dataserver_callback(queryid, data);
@@ -24,9 +26,11 @@ default {
   }
   on_rez(integer start_param) {
     reset_game();
+    pos = llGetPos();
   }
   attach(key id) {
     reset_game();
+    pos = llGetPos();
   }
   changed(integer change) {
     if (change & CHANGED_TELEPORT)
@@ -35,7 +39,13 @@ default {
   timer() {
     integer flystatus = llGetAgentInfo(llGetOwner()) & AGENT_FLYING;
     if (!flying && flystatus)
-    reset_game();
+      reset_game();
     flying = flystatus;
+
+    vector newpos = llGetPos();
+    float distance = llVecDist(pos, newpos);
+    if (distance > 15)
+      reset_game();
+    pos = newpos;
   }
 }
