@@ -1,7 +1,7 @@
 /*
 variables needed:
 
-integer item_to_take = id of the item to take
+string item_to_take = id of the item to take
 integer reward_points = how many points to reward for the item taken
 */
 

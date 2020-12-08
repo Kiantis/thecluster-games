@@ -56,8 +56,8 @@ channel_send(list command) {
   llSay(channel_listen_channel, llDumpList2String([secret_secret] + command, ","));
 }
 
-integer item_id_is(list command, integer item_id) {
-  return llGetListLength(command) > 0 && llList2Integer(command, 1) == item_id;
+integer item_id_is(list command, string item_id) {
+  return llGetListLength(command) > 0 && llList2String(command, 1) == item_id;
 }
 
 key command_subject(list command) {
@@ -120,7 +120,6 @@ init_identify_script(integer id) {
 
 // ============================================================================
 
-list inventory;
 integer inventory_points;
 list inventory_names;
 
@@ -143,13 +142,12 @@ list inventory_receive_check(integer channel, string name, key id, string smessa
   if (llGetOwner() != destinationKey)
     return [];
 
-  integer itemId = llList2Integer(message, 3);
-  inventory = inventory + [itemId];
-  inventory_names = inventory_names + llList2String(itemDescriptions, itemId);
-  channel_send([GIVE_INVENTORY_ITEM_ACK, llGetOwner(), itemId]);
+  string itemCode = llList2String(message, 3);
+  inventory_names = inventory_names + [itemCode];
+  channel_send([GIVE_INVENTORY_ITEM_ACK, llGetOwner(), itemCode]);
   inventory_changed();
 
-  return [destinationKey, itemId];
+  return [destinationKey, itemCode];
 }
 
 list inventory_points_receive_check(integer channel, string name, key id, string smessage) {
@@ -198,17 +196,16 @@ list inventory_remove_check(integer channel, string name, key id, string smessag
   if (llGetOwner() != destinationKey)
     return [];
 
-  integer itemId = llList2Integer(message, 3);
-  integer idx = llListFindList(inventory, [itemId]);
+  string itemCode = llList2String(message, 3);
+  integer idx = llListFindList(inventory_names, [itemCode]);
   if (idx == -1)
     return [];
 
-  inventory = llDeleteSubList(inventory, idx, idx);
   inventory_names = llDeleteSubList(inventory_names, idx, idx);
-  channel_send([REMOVE_INVENTORY_ITEM_ACK, llGetOwner(), itemId]);
+  channel_send([REMOVE_INVENTORY_ITEM_ACK, llGetOwner(), itemCode]);
   inventory_changed();
 
-  return [destinationKey, itemId];
+  return [destinationKey, itemCode];
 }
 
 list inventory_points_receive_ackd(integer channel, string name, key id, string smessage) {
@@ -247,8 +244,8 @@ list inventory_receive_ackd(integer channel, string name, key id, string smessag
     return [];
   
   key destinationKey = llList2Key(message, 2);
-  integer itemId = llList2Integer(message, 3);
-  return [destinationKey, itemId];
+  string itemCode = llList2String(message, 3);
+  return [destinationKey, itemCode];
 }
 
 list inventory_remove_ackd(integer channel, string name, key id, string smessage) {
@@ -267,8 +264,15 @@ list inventory_remove_ackd(integer channel, string name, key id, string smessage
     return [];
   
   key destinationKey = llList2Key(message, 2);
-  integer itemId = llList2Integer(message, 3);
-  return [destinationKey, itemId];
+  string itemCode = llList2String(message, 3);
+  return [destinationKey, itemCode];
+}
+
+reset_game() {
+  inventory_points = 0;
+  inventory_names = [];
+  inventory_changed();
+  llOwnerSay("Game was reset");
 }
 
 inventory_changed() {

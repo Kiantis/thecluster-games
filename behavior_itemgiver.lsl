@@ -2,7 +2,7 @@
 variables needed:
 
 integer regen_delay = seconds to regenerate the item to give
-integer item_to_give = id of the item to give
+string item_to_give = id of the item to give
 */
 
 #include "fullinclude.lsl"
